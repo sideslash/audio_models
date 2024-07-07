@@ -28,9 +28,7 @@ class StackResidualBlock(nn.Module):
     def __init__(self, res_channels, skip_channels, kernel_size, stack_size, layer_size):
         super(StackResidualBlock, self).__init__()
         dilations = np.array([2 ** i for i in range(layer_size)] * stack_size) # repeat the dilation values by stack_size times
-        self.res_blocks = []
-        for dilation in dilations:
-            self.res_blocks.append(ResidualBlock(res_channels, skip_channels, kernel_size, dilation))
+        self.res_blocks = nn.ModuleList([ResidualBlock(res_channels, skip_channels, kernel_size, dilation) for dilation in dilations])
 
     def forward(self, x):
         res_out = x

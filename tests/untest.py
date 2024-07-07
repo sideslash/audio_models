@@ -36,13 +36,12 @@ class TestWaveNet(TestCase):
         self.input = nn.Parameter(torch.randn((in_channels, sample_size)))
         self.input = repeat(self.input, 'c t -> b c t', b=batch_size) # c: channel, t: time
         
-        # self.wavenet.to(device)
-        # self.wavenet.stack_res_block.to(torch.device("cuda"))
-        # self.input = self.input.to(device)
+        self.wavenet.to(device)
+        self.input = self.input.to(device)
 
-        # print(f"WaveNet model is on device: {next(self.wavenet.parameters()).device}")
-        # print(f"stack_res_block model is on device: {next(self.wavenet.stack_res_block.parameters()).device}")
-        # print(f"Input is on device: {self.input.device}")
+        print(f"WaveNet model is on device: {next(self.wavenet.parameters()).device}")
+        print(f"stack_res_block model is on device: {next(self.wavenet.stack_res_block.parameters()).device}")
+        print(f"Input is on device: {self.input.device}")
 
         # self.input = torch.tensor([[[1,2,3,4,5,6,7,8]]], dtype=torch.float32)
         print(f"input:{self.input.shape}, receptive_field:{self.wavenet.receptive_field}")

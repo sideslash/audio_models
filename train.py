@@ -40,8 +40,16 @@ if __name__ == "__main__":
 
     # Set up basic configuration for logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-    device = torch.device("cpu")
+    
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print("MPS backend is available.")
+    elif torch.cuda.is_available():
+        print(f"CUDA is available, devices count {print(torch.cuda.device_count())}")
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+        print("MPS and CUDA is not available. Using CPU instead.")
 
     param = hparams()
 
