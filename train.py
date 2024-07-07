@@ -39,7 +39,10 @@ if __name__ == "__main__":
     file_log = "WaveNet.log"
 
     # Set up basic configuration for logging
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.INFO, 
+                        format="%(asctime)s - %(levelname)s - %(message)s",
+                        handlers=[logging.FileHandler(file_log), 
+                                  logging.StreamHandler()])
     
     if torch.backends.mps.is_available():
         device = torch.device("mps")
