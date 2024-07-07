@@ -25,13 +25,13 @@ class hparams(HParams):
     lr_decay: float = learning_rate / 10.0    
     lr_update_epoch: int = 1
 
-    model_name: str = 'wavenet'
+    model_name: str = "wavenet"
 
 
 def adjust_learning_rate(optimizer, lr, decay):
     new_lr = max(0.000005, lr - decay)
     for param_group in optimizer.param_groups:
-        param_group['lr'] = new_lr
+        param_group["lr"] = new_lr
     return new_lr, optimizer
 
  
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     file_log = "WaveNet.log"
 
     # Set up basic configuration for logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     
     if torch.backends.mps.is_available():
         device = torch.device("mps")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     receptive_field = model.receptive_field
     print(f"receptive_field:{receptive_field}, output_length:{param.output_length}")
 
-    opttimizer = torch.optim.Adam(model.parameters(), lr=param.learning_rate, betas=[0.5, 0.999])
+    optimizer = torch.optim.Adam(model.parameters(), lr=param.learning_rate, betas=[0.5, 0.999])
 
     cross_loss = nn.CrossEntropyLoss()
 
@@ -73,32 +73,45 @@ if __name__ == "__main__":
     print(f"len(dataset):{len(dataset)}")
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=param.batch_size, shuffle=True, num_workers=8)
 
+    checkpoint_folder = "checkpoints"
+    os.makedirs(checkpoint_folder, exist_ok=True)
+
     for epoch in range(param.epochs):
         model.train()
         
         if epoch > param.decay_start and (epoch - param.decay_start) % param.lr_update_epoch == 0:
-            param.learning_rate, opttimizer = adjust_learning_rate(opttimizer, param.learning_rate, param.lr_decay)
+            param.learning_rate, optimizer = adjust_learning_rate(optimizer, param.learning_rate, param.lr_decay)
             logging.info(f"learning rate is updated to {param.learning_rate}")
 
         for i, (x, y) in enumerate(dataloader):
             x = x.to(device)
             y = y.to(device)
 
-            opttimizer.zero_grad()
+            optimizer.zero_grad()
             y_pred = model(x)
-            # print(f"step1: y_pred:{y_pred.shape}, y:{y.shape}, x:{x.shape}")
 
             y = y.view(-1)
             y_pred = y_pred.permute(0, 2, 1).contiguous()
             y_pred = y_pred.view(-1, y_pred.size(-1))
 
             loss = cross_loss(y_pred, y)
-            # print(f"loss:{loss.item()}")
 
             loss.backward()
-            opttimizer.step()
+            optimizer.step()
 
             if i % 100 == 0:
-                print(f"epoch:{epoch}, iteration:{i}, loss:{loss.item()}")
+                logging.info(f"epoch:{epoch}, iteration:{i}, loss:{loss.item()}")
+
+        # save model
+        checkpoint = {
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": loss,
+        }
+        path = os.path.join(checkpoint_folder, f"checkpoint_{epoch}.pth")
+        torch.save(checkpoint, path)
+
+
 
         
