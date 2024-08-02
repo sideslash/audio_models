@@ -5,28 +5,7 @@ import os
 import logging
 from dataset import WaveNetDataset
 from wavenet import WaveNet
-from hparams import HParams
-
-class hparams(HParams):
-    stack_size: int  = 10
-    layer_Size: int  = 3
-
-    in_out_channels: int  = 256
-    res_channel: int  = 64
-    skip_channel: int  = 512
-    
-    output_length: int = 128
-
-    epochs: int = 30
-    learning_rate: float = 0.001
-    batch_size: int = 32
-
-    decay_start: int = 10
-    lr_decay: float = learning_rate / 10.0    
-    lr_update_epoch: int = 1
-
-    model_name: str = "wavenet"
-
+from param import Model_Params
 
 def adjust_learning_rate(optimizer, lr, decay):
     new_lr = max(0.000005, lr - decay)
@@ -54,7 +33,8 @@ if __name__ == "__main__":
         device = torch.device("cpu")
         print("MPS and CUDA is not available. Using CPU instead.")
 
-    param = hparams()
+    device = torch.device("cpu")
+    param = Model_Params()
 
     model = WaveNet(param.in_out_channels, 
                     param.res_channel, 
